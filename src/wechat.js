@@ -121,7 +121,8 @@ Wechat.prototype.getUUID = function() {
         method: 'GET',
         url: self[API].jsLogin,
         params: params
-    }).then(function(res) { console.log(res.raw.toString())
+    }).then(function(res) { 
+        //console.log(res.raw.toString())
         var pm = res.data.match(/window.QRLogin.code = (\d+); window.QRLogin.uuid = "(\S+?)"/)
         if (!pm) {
             throw new Error('UUID错误: 格式错误')
@@ -154,7 +155,7 @@ Wechat.prototype.checkScan = function() {
             'Referer': 'https://wx.qq.com/'
         }
     }).then(function(res) {
-        console.log('checkScan',res.data);
+        //console.log(res);
         var pm = res.data.match(/window.code=(\d+);/)
         var code = +pm[1]
 
@@ -191,6 +192,7 @@ Wechat.prototype.login = function() {
         method: 'GET',
         url: self[API].rediUri
     }).then(function(res) {
+        //console.log(res);
         var sessioninfo = querystring.unescape(res.data);
         var jsonv = xmlparser(sessioninfo);
         var values = jsonv.root.children;
@@ -219,7 +221,6 @@ Wechat.prototype.login = function() {
             'Skey': self[PROP].skey,
             'DeviceID': self[PROP].deviceId
         }
-        //console.log('PROP',self[PROP]);
 
         if( 0 != self[PROP].ret    ){
             throw new Error('获取登录信息失败:' + self[PROP].message);
@@ -410,14 +411,17 @@ Wechat.prototype.syncPolling = function() {
             debug('logout from phone');
             return self.logout();
         } else if (CONF.SYNCCHECK_RET_SUCCESS !== state.retcode) {
-            throw new Error('unknow error, alias logout: '+state.retcode)
+            //throw new Error('unknow error, alias logout: '+state.retcode)
         } else {
             self.syncErrorCount = 0;
         }
 
         if(CONF.SYNCCHECK_SELECTOR_NORMAL == state.selector){
             debug('WebSync Normal')
-            return self.syncPolling();         
+            return self._sync().then(function(data) {
+                self._handleMsg(data)
+                return self.syncPolling();
+            })       
         }else{
             return self._sync().then(function(data) {
                 self._handleMsg(data)
@@ -573,12 +577,15 @@ Wechat.prototype._syncCheck = function() {
         'deviceid': self[PROP].deviceId,
         'synckey': self[PROP].formateSyncKey
     }
+    //console.log(params);
+
     return self.request.R({
         method: 'GET',
         url: self[API].synccheck,
         params: params
     }).then(function(res) {
-        console.log('_sync check:', res.data);
+        //console.log(res);
+        //console.log('_sync check:', res.data);
         var re = /window.synccheck={retcode:"(\d+)",selector:"(\d+)"}/
         var pm = res.data.match(re)
 
@@ -893,7 +900,7 @@ Wechat.prototype._getUserRemarkName = function(uid) {
     debug('_getUserRemarkName:' + uid)
     for (var ii in self.memberList) {
         var member = self.memberList[ii];
-        //console.log("FIND UID:", member['UserName'])
+        ////console.log("FIND UID:", member['UserName'])
         if (member['UserName'] === uid) {
             return member['RemarkName'] ? member['RemarkName'] : member['NickName']
         }
