@@ -518,23 +518,22 @@ Wechat.prototype.stop = function() {
     return self.state === CONF.STATE.login ? self.logout() : Promise.resolve()
 }
 
+// Link: https://www.cnblogs.com/yank/p/3507326.html
 Wechat.prototype.sendMsg = function(msg, to, callback) {
     var self = this;
     var params = {
         'pass_ticket': self[PROP].passTicket
     }
     var clientMsgId = +new Date() + '0' + Math.random().toString().substring(2, 5)
+    msg.FromUserName = self.user['UserName'];
+    msg.ToUserName = to;
+    msg.LocalID = clientMsgId;
+    msg.ClientMsgId = clientMsgId;
     var data = {
         'BaseRequest': self[PROP].baseRequest,
-        'Msg': {
-            'Type': 1,
-            'Content': msg,
-            'FromUserName': self.user['UserName'],
-            'ToUserName': to,
-            'LocalID': clientMsgId,
-            'ClientMsgId': clientMsgId
-        }
+        'Msg': msg
     }
+    
     self.request.R({
         method: 'POST',
         url: self[API].webwxsendmsg,
@@ -544,10 +543,12 @@ Wechat.prototype.sendMsg = function(msg, to, callback) {
     }).then(function(res) {
         var data = res.data
         if (data['BaseResponse']['Ret'] !== 0) {
+            console.log("发送信息Ret错误");
             throw new Error('发送信息Ret错误: ' + data['BaseResponse']['ErrMsg'])
         }
         if(callback)callback();
     }).catch(function(err) {
+        console.log("发送信息Ret错误");
         debug(err);
         if(callback)callback(err);
         throw err;
