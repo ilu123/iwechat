@@ -29,6 +29,8 @@ var CONF = {
   MSGTYPE_RECALLED: 10002,
 
   SYNCCHECK_RET_KICKOFF: 1100,
+  SYNCCHECK_RET_INVALID: 1101,
+  SYNCCHECK_RET_URL_PREFIX_CHANGED: 1102,
   SYNCCHECK_RET_SUCCESS: 0,
   SYNCCHECK_SELECTOR_NORMAL: 0,
   SYNCCHECK_SELECTOR_MSG: 2,
@@ -43,6 +45,7 @@ var CONF = {
 }
 
 var updateAPI = function( API){
+  console.log(API)
   var e = API.baseUri
   var t = 'weixin.qq.com'
   var o = 'file.wx.qq.com'
